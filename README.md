@@ -16,8 +16,9 @@ This repository allows developers to contribute ML models. Pull the repo, add yo
 4. Add/commit: `git add .` then `git commit -m "Initial test model"`.
 5. Push: `git push origin main` (or your branch).
 6. Monitor GitHub Actions for validation.
-7. For rejection test: Change `n_estimators` to 1 in `test_training.py`, retrain, commit/push. Actions should reject with "❌ New model rejected" and details in report.
-8. Verify base update in `base_model/model.pkl` and Git LFS tracking.
+7. First push: Accepts as base (no rejection).
+8. For rejection test: Modify script to make model worse (e.g., n_estimators=1), retrain, commit/push again. Actions should reject with "❌ New model rejected" and details in report.
+9. Verify base update in `base_model/model.pkl` and Git LFS tracking.
 
 ## Validation
 - If your model scores higher (via weighted equation), it becomes the new base model.
