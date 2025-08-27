@@ -29,7 +29,7 @@ train_df.to_csv(os.path.join(project_root, 'dataset', 'train.csv'), index=False)
 valid_df.to_csv(os.path.join(project_root, 'dataset', 'valid.csv'), index=False)
 
 # Train model (bad version: low n_estimators for rejection)
-model = RandomForestClassifier(n_estimators=100, random_state=42)  # Low accuracy for rejection test
+model = RandomForestClassifier(n_estimators=10, random_state=42)  # Low accuracy for rejection test
 model.fit(X_train, y_train)
 
 # Save model

@@ -37,6 +37,7 @@ jobs:
           echo "No changes to base model"
         else
           git commit -m "Update base model after validation"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
           git push
           echo "Base model updated and pushed"
         fi
