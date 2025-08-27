@@ -43,7 +43,7 @@ jobs:
       run: python scripts/compare_models.py --base base_model/model.pkl --new models/
 
     - name: Commit Base Model Update
-      if: steps.changed-files.outputs.models_changed == 'true' && success()
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.changed-files.outputs.models_changed == 'true' && success()
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
