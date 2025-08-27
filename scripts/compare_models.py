@@ -62,6 +62,7 @@ def main(base_model_path, new_models_dir):
 
     if new_score > base_score:
         print("✅ New model accepted")
+        os.makedirs(os.path.dirname(base_model_path), exist_ok=True)
         joblib.dump(new_model, base_model_path)
         with open("validation_report.txt", "a") as f:
             f.write(f"Base model updated by {committer_name}\n")

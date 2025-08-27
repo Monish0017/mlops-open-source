@@ -34,10 +34,3 @@ jobs:
         git add base_model/
         git commit -m "Update base model after validation" || echo "No changes to commit"
         git push
-
-    - name: Upload Logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: validation-report
-        path: validation_report.txt
