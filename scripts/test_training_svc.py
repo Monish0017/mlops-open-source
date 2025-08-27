@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.datasets import load_iris
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split
 import joblib
 import os
@@ -28,9 +28,9 @@ os.makedirs(os.path.join(project_root, 'models'), exist_ok=True)
 train_df.to_csv(os.path.join(project_root, 'dataset', 'train.csv'), index=False)
 valid_df.to_csv(os.path.join(project_root, 'dataset', 'valid.csv'), index=False)
 
-# Train model (bad version: low n_estimators for rejection)
-model = RandomForestClassifier(n_estimators=100, random_state=42)  # Low accuracy for rejection test
+# Train model (SVC for better accuracy)
+model = SVC(kernel='rbf', C=1.0, random_state=42)  # Good alternative model
 model.fit(X_train, y_train)
 
 # Save model
-joblib.dump(model, os.path.join(project_root, 'models', 'test_model.pkl'))
+joblib.dump(model, os.path.join(project_root, 'models', 'test_model_svc.pkl'))
