@@ -31,6 +31,19 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+        git lfs track base_model/*.pkl
         git add base_model/
-        git commit -m "Update base model after validation" || echo "No changes to commit"
-        git push
+        if git diff --cached --quiet; then
+          echo "No changes to base model"
+        else
+          git commit -m "Update base model after validation"
+          git push
+          echo "Base model updated and pushed"
+        fi
+
+    - name: Upload Logs
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: validation-report
+        path: validation_report.txt
