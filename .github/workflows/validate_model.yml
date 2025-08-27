@@ -2,8 +2,11 @@ name: Validate Model
 
 on:
   push:
-    paths:
-      - 'models/**'
+    branches:
+      - main  # Trigger on all pushes to main to satisfy branch protection
+
+permissions:
+  contents: write  # Allow writing to repo for git push
 
 jobs:
   validate:
@@ -15,19 +18,31 @@ jobs:
       with:
         lfs: true   # Enable Git LFS
 
+    - name: Check if models changed
+      id: changed-files
+      run: |
+        if git diff --name-only HEAD~1 | grep -q '^models/'; then
+          echo "models_changed=true" >> $GITHUB_OUTPUT
+        else
+          echo "models_changed=false" >> $GITHUB_OUTPUT
+        fi
+
     - name: Set up Python
+      if: steps.changed-files.outputs.models_changed == 'true'
       uses: actions/setup-python@v4
       with:
         python-version: '3.10'
 
     - name: Install Dependencies
+      if: steps.changed-files.outputs.models_changed == 'true'
       run: pip install -r requirements.txt
 
     - name: Run Validation
+      if: steps.changed-files.outputs.models_changed == 'true'
       run: python scripts/compare_models.py --base base_model/model.pkl --new models/
 
     - name: Commit Base Model Update
-      if: success()
+      if: steps.changed-files.outputs.models_changed == 'true' && success()
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
@@ -43,7 +58,7 @@ jobs:
         fi
 
     - name: Upload Logs
-      if: always()
+      if: steps.changed-files.outputs.models_changed == 'true' && always()
       uses: actions/upload-artifact@v4
       with:
         name: validation-report
