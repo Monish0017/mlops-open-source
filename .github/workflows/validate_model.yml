@@ -1,9 +1,10 @@
 name: Validate Model
 
 on:
-  push:
+  push:  # Trigger on pushes to any branch (for feature branches)
+  pull_request:
     branches:
-      - main  # Trigger on direct pushes to main for validation
+      - main  # Trigger on PRs targeting main
 
 permissions:
   contents: write  # Allow writing to repo for git push
