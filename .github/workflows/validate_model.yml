@@ -18,6 +18,7 @@ jobs:
       uses: actions/checkout@v3
       with:
         lfs: true   # Enable Git LFS
+        fetch-depth: 0  # Fetch all history to ensure proper diff comparison
 
     - name: Check if models changed
       id: changed-files
@@ -26,6 +27,7 @@ jobs:
           echo "models_changed=true" >> $GITHUB_OUTPUT
         else
           echo "models_changed=false" >> $GITHUB_OUTPUT
+          echo "No model changes detected. Skipping validation."
         fi
 
     - name: Set up Python
@@ -36,7 +38,15 @@ jobs:
 
     - name: Install Dependencies
       if: steps.changed-files.outputs.models_changed == 'true'
-      run: pip install -r requirements.txt
+      run: |
+        python -m pip install --upgrade pip
+        pip install scikit-learn pandas numpy joblib
+
+    - name: Ensure Base Model Directory Exists
+      if: steps.changed-files.outputs.models_changed == 'true'
+      run: |
+        mkdir -p base_model
+        touch base_model/.gitkeep
 
     - name: Run Validation
       if: steps.changed-files.outputs.models_changed == 'true'
@@ -45,15 +55,13 @@ jobs:
     - name: Commit Base Model Update
       if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.changed-files.outputs.models_changed == 'true' && success()
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git lfs track base_model/*.pkl
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
         git add base_model/
         if git diff --cached --quiet; then
           echo "No changes to base model"
         else
-          git commit -m "Update base model after validation"
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          git commit -m "Update base model after successful validation"
           git push
           echo "Base model updated and pushed"
         fi
