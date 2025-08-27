@@ -35,9 +35,14 @@ def main(base_model_path, new_models_dir):
 
     # Load base model if exists
     if os.path.exists(base_model_path):
-        base_model = joblib.load(base_model_path)
-        base_metrics = evaluate(base_model, X, y)
-        base_score = score_function(base_metrics)
+        try:
+            base_model = joblib.load(base_model_path)
+            base_metrics = evaluate(base_model, X, y)
+            base_score = score_function(base_metrics)
+        except Exception as e:
+            print(f"Error loading base model: {e}. Treating as no base model.")
+            base_score = -1  # No base, so any new model is better
+            base_metrics = {}
     else:
         base_score = -1  # No base, so any new model is better
         base_metrics = {}
