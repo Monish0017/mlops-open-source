@@ -42,29 +42,45 @@ jobs:
         python -m pip install --upgrade pip
         pip install scikit-learn pandas numpy joblib
 
-    - name: Ensure Base Model Directory Exists
+    - name: Fetch Current Model from Main Branch
       if: steps.changed-files.outputs.models_changed == 'true'
       run: |
-        mkdir -p base_model
-        touch base_model/.gitkeep
+        git fetch origin main
+        mkdir -p current_model
+        # Fetch the latest model from main's models/ folder
+        MODEL_FILE=$(git ls-tree -r origin/main --name-only models/ | head -1)
+        if [ -n "$MODEL_FILE" ]; then
+          git show origin/main:$MODEL_FILE > current_model/current_model.pkl
+          echo "Current model fetched from main"
+        else
+          echo "No model in main - will use placeholder"
+          touch current_model/current_model.pkl
+        fi
 
     - name: Run Validation
       if: steps.changed-files.outputs.models_changed == 'true'
-      run: python scripts/compare_models.py --base base_model/model.pkl --new models/
+      run: python scripts/compare_models.py --base current_model/current_model.pkl --new models/
 
-    - name: Commit Base Model Update
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.changed-files.outputs.models_changed == 'true' && success()
+    - name: Install GitHub CLI
+      if: github.event_name == 'pull_request' && steps.changed-files.outputs.models_changed == 'true'
       run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        git add base_model/
-        if git diff --cached --quiet; then
-          echo "No changes to base model"
+        curl -Lo gh.tar.gz https://github.com/cli/cli/releases/latest/download/gh_2.40.1_linux_amd64.tar.gz
+        tar -xzf gh.tar.gz
+        sudo mv gh_2.40.1_linux_amd64/bin/gh /usr/local/bin/
+        gh --version
+
+    - name: Auto-Merge PR on Better Model
+      if: github.event_name == 'pull_request' && steps.changed-files.outputs.models_changed == 'true' && success()
+      run: |
+        if grep -q "Base model will be updated" validation_report.txt; then
+          echo "Auto-merging PR due to better model"
+          gh pr merge ${{ github.event.pull_request.number }} --merge --delete-branch-when-merged=false
+          echo "PR merged successfully"
         else
-          git commit -m "Update base model after successful validation"
-          git push
-          echo "Base model updated and pushed"
+          echo "PR not merged - model not better than current in main"
         fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload Logs
       if: steps.changed-files.outputs.models_changed == 'true' && always()
@@ -72,3 +88,4 @@ jobs:
       with:
         name: validation-report
         path: validation_report.txt
+
