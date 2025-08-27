@@ -1,0 +1,34 @@
+name: Validate Model
+
+on:
+  push:
+    paths:
+      - 'models/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+      with:
+        lfs: true   # Enable Git LFS
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install Dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run Validation
+      run: python scripts/compare_models.py --base base_model/model.pkl --new models/
+
+    - name: Upload Logs
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: validation-report
+        path: validation_report.txt
