@@ -28,9 +28,9 @@ os.makedirs(os.path.join(project_root, 'models'), exist_ok=True)
 train_df.to_csv(os.path.join(project_root, 'dataset', 'train.csv'), index=False)
 valid_df.to_csv(os.path.join(project_root, 'dataset', 'valid.csv'), index=False)
 
-# Train model (bad version: low n_estimators for rejection)
-model = RandomForestClassifier(n_estimators=1, random_state=42)  # Low accuracy for rejection test
+# Train model (good version: higher n_estimators for better accuracy)
+model = RandomForestClassifier(n_estimators=100, random_state=42)  # Higher accuracy for acceptance test
 model.fit(X_train, y_train)
 
 # Save model
-joblib.dump(model, os.path.join(project_root, 'models', 'test_model.pkl'))
+joblib.dump(model, os.path.join(project_root, 'models', 'good_model.pkl'))
