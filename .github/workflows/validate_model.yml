@@ -26,6 +26,15 @@ jobs:
     - name: Run Validation
       run: python scripts/compare_models.py --base base_model/model.pkl --new models/
 
+    - name: Commit Base Model Update
+      if: success()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add base_model/
+        git commit -m "Update base model after validation" || echo "No changes to commit"
+        git push
+
     - name: Upload Logs
       if: always()
       uses: actions/upload-artifact@v4
